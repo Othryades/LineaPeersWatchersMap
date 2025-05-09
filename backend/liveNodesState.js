@@ -10,7 +10,7 @@ function connectWebSocket() {
   const socket = new Socket('wss://ethstats.linea.build/primus?secret=asdf');
 
   socket.on('open', () => {
-    console.log('✅ Connected to ethstats');
+    console.log('Connected to ethstats');
     reconnectAttempts = 0; // Reset attempts on successful connection
   });
 
@@ -57,7 +57,7 @@ function connectWebSocket() {
   });
 
   socket.on('error', (err) => {
-    console.error('❌ WebSocket error:', err);
+    console.error('WebSocket error:', err);
   });
 
   socket.on('end', () => {
@@ -69,7 +69,7 @@ function connectWebSocket() {
       console.log(`🔄 Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
       setTimeout(connectWebSocket, RECONNECT_DELAY);
     } else {
-      console.error('❌ Max reconnection attempts reached. Please check the connection manually.');
+      console.error('Max reconnection attempts reached. Please check the connection manually.');
     }
   });
 
