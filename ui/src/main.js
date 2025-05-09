@@ -14,4 +14,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href
 })
 
+document.body.classList.add('dark')
+
 createApp(App).mount('#app')

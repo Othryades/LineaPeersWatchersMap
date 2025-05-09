@@ -8,7 +8,7 @@
 
 # Data Sources
 	•	Static Nodes: Fetched from /static-nodes (usually enriched admin_peers)
-	•	Live Nodes: Fetched from /live-nodes (from Linea EthStats WS or backend)
+	•	Live Nodes: Fetched from /live-nodes (from Linea EthStats WS)
 	•	Uses AWS region heuristics + IP geolocation for mapping
 
 
