@@ -15,30 +15,14 @@
           <div class="stats-card__content">
             <div class="stat-item">
               <span class="stat-item__icon"></span>
-              <span class="stat-item__label">Total Peers</span>
+              <span class="stat-item__label">
+                Total Static Peers
+                <div class="tooltip-container" @click="showStaticPeersTooltip = !showStaticPeersTooltip">
+                  <span class="info-icon">i</span>
+                  <div class="tooltip" :class="{ 'tooltip--active': showStaticPeersTooltip }">Static Peers are a list of admin_peers from a random node on the network, that may or may not be currently active, refreshed every week.</div>
+                </div>
+              </span>
               <span class="stat-item__value">{{ stats.total }}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-item__icon"></span>
-              <span class="stat-item__label">
-                Live Nodes
-                <div class="tooltip-container">
-                  <span class="info-icon">i</span>
-                  <div class="tooltip">Shows nodes that voluntarily share data to ethstats.linea, refreshed every 5 sec.</div>
-                </div>
-              </span>
-              <span class="stat-item__value">{{ stats.live }}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-item__icon"></span>
-              <span class="stat-item__label">
-                Static Nodes
-                <div class="tooltip-container">
-                  <span class="info-icon">i</span>
-                  <div class="tooltip">Static nodes are a list of admin_peers from a random node on the network, that may or may not be currently active, refreshed every week.</div>
-                </div>
-              </span>
-              <span class="stat-item__value">{{ stats.static }}</span>
             </div>
           </div>
         </div>
@@ -46,75 +30,57 @@
         <div class="filters-card">
           <h2 class="filters-card__title">Stats</h2>
           <div class="filters-card__content">
-            <div class="filter-group">
-              <label class="filter-group__label">Client Type</label>
-              <div class="client-filters">
-                <div 
-                  v-for="client in clients" 
-                  :key="client"
-                  :class="['client-filter', selectedClient === client ? 'active' : '']"
-                >
-                  {{ client }}
-                  <span class="client-count" v-if="stats.clientCounts[client]">
-                    ({{ stats.clientCounts[client] }})
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div class="filter-group">
-              <label class="filter-group__label">Location</label>
-              <div class="client-filters">
-                <div 
-                  v-for="country in stats.countryCounts" 
-                  :key="country.country"
-                  :class="['client-filter', locationFilter === country.country ? 'active' : '']"
-                  @click="locationFilter = locationFilter === country.country ? '' : country.country"
-                >
-                  {{ country.country }}
-                  <span class="client-count">
-                    ({{ country.count }})
-                  </span>
-                </div>
-              </div>
-            </div>
+            <ClientStatsCharts :clientCounts="stats.clientCounts" :dark="isDark" />
+
           </div>
         </div>
       </aside>
 
       <main class="dashboard__main">
-        <div class="map-header">
-          <h2 class="map-header__title">Node Distribution</h2>
-          <button 
-            class="map-header__toggle"
-            @click="isHeatmapEnabled = !isHeatmapEnabled"
-          >
-            Heatmap
-          </button>
+        <div class="node-distribution-block">
+          <div class="map-header">
+            <h2 class="map-header__title">Node Distribution</h2>
+            <button
+              class="map-header__toggle"
+              @click="isHeatmapEnabled = !isHeatmapEnabled"
+            >
+              Heatmap
+            </button>
+          </div>
+          <div class="map-view-wrapper">
+            <MapView
+              :filters="{ client: selectedClient, location: locationFilter }"
+              :dark="isDark"
+              :heatmap="isHeatmapEnabled"
+              @stats-updated="updateStats"
+            />
+          </div>
         </div>
-        <div class="map-container">
-          <MapView 
-            :filters="{ client: selectedClient, location: locationFilter }" 
-            :dark="isDark"
-            :heatmap="isHeatmapEnabled"
-            @stats-updated="updateStats" 
-          />
+
+        <div class="location-distribution-block">
+          <LocationStatsChart
+              :countryCounts="stats.countryCounts"
+              :dark="isDark"
+              @country-selected="locationFilter = locationFilter === $event ? '' : $event"
+            />
         </div>
       </main>
     </div>
-
     <footer class="dashboard__footer">
       <div class="footer__content">
         <div class="footer__info">
           <span>Linea Peers Watcher Map</span>
           <span class="footer__separator">•</span>
-          <span>v.0.1</span>
+          <a href="https://github.com/Othryades/lineanodemap" target="_blank" rel="noopener">
+            <img src="/github-mark-white.svg" alt="GitHub" style="width: 20px; height: 20px;">
+          </a>
+          <span class="footer__separator">•</span>
+          <span>v.0.2</span>
         </div>
         <div class="footer__links">
           <a href="https://linea.build" target="_blank" rel="noopener">Linea</a>
           <span class="footer__separator">•</span>
           <a href="https://docs.linea.build/developers/guides/run-a-node" target="_blank" rel="noopener">Run a node!</a>
-          <span class="footer__separator">•</span>
-          <a href="https://github.com/Othryades/lineanodemap" target="_blank" rel="noopener">GitHub</a>
           <span class="footer__separator">•</span>
           <a href="https://vite.dev/" target="_blank" rel="noopener"><img src="/vite.svg?url" alt="Linea Logo" style="width: 13px; height: 14px;"></a>
         </div>
@@ -126,6 +92,8 @@
 <script setup>
 import { ref, watch } from 'vue'
 import MapView from '../components/MapView.vue'
+import ClientStatsCharts from '../components/ClientStatsCharts.vue'
+import LocationStatsChart from '../components/LocationStatsChart.vue'
 // import '../style.css'
 const isDark = ref(true)
 const selectedClient = ref('')
@@ -138,6 +106,7 @@ const stats = ref({
   countryCounts: []
 })
 const isHeatmapEnabled = ref(true)
+const showStaticPeersTooltip = ref(false)
 
 const clients = ['Geth', 'Besu', 'Erigon', 'Nethermind', 'Unknown']
 
@@ -157,12 +126,19 @@ function updateStats(newStats) {
 
 <style>
 /* Global styles - outside scoped */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
   background: #f9fafb;
   transition: background-color 0.3s ease;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 body.dark {
@@ -244,13 +220,12 @@ body.dark {
 
 .dashboard__content {
   display: grid;
-  grid-template-columns: 400px minmax(600px, 800px);
+  grid-template-columns: 340px minmax(600px, 800px);
   gap: 1rem;
   padding: 1rem;
-  height: calc(100vh - 64px - 200px);
   max-width: 1200px;
   margin: 0 auto;
-  align-items: start;
+  align-items: stretch;
 }
 
 .dashboard__sidebar {
@@ -260,17 +235,13 @@ body.dark {
 }
 
 .dashboard__main {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  height: 530px;
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
 
 .dark .dashboard__main {
-  background: #2c2c3c;
+  /* background: #2c2c3c; */
 }
 
 /* Stats Card */
@@ -512,7 +483,7 @@ body.dark {
   }
 
   .dashboard__main {
-    height: 400px;
+    /* height: 400px; */
   }
 }
 
@@ -530,7 +501,7 @@ body.dark {
 
   .dashboard__main {
     order: 1;
-    height: 350px;
+    /* height: 350px; */
   }
 
   .stats-card__content {
@@ -580,7 +551,7 @@ body.dark {
   }
 
   .dashboard__main {
-    height: 300px;
+    /* height: 300px; */
   }
 }
 
@@ -768,6 +739,11 @@ body.dark {
   opacity: 1;
 }
 
+.tooltip-container .tooltip.tooltip--active {
+  visibility: visible;
+  opacity: 1;
+}
+
 .dark .tooltip {
   background: #1e1e2f;
   color: #e5e7eb;
@@ -775,6 +751,41 @@ body.dark {
 
 .dark .tooltip::before {
   background: #1e1e2f;
+}
+
+.node-distribution-block,
+.location-distribution-block {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.dark .node-distribution-block,
+.dark .location-distribution-block {
+  background: #2c2c3c;
+}
+
+.node-distribution-block {
+  height: 530px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.map-view-wrapper {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+@media (max-width: 640px) {
+  .node-distribution-block {
+    height: 330px;
+  }
+}
+
+.location-distribution-block {
+  /* Height is auto. Add padding here if LocationStatsChart needs it. */
+  /* For example: padding: 1rem; */
 }
 </style>
   
