@@ -30,7 +30,7 @@ export const HEATMAP_CONFIG = {
   blur: 12,
   maxZoom: 8,
   gradient: {
-    0.1: 'blue',
+    0.1: 'lime',
     0.3: 'cyan',
     0.5: 'lime',
     0.7: 'yellow',

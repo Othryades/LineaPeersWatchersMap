@@ -19,7 +19,8 @@
                 Total Static Peers
                 <div class="tooltip-container" @click="showStaticPeersTooltip = !showStaticPeersTooltip">
                   <span class="info-icon">i</span>
-                  <div class="tooltip" :class="{ 'tooltip--active': showStaticPeersTooltip }">Static Peers are a list of admin_peers from a random node on the network, that may or may not be currently active, refreshed every week.</div>
+                  <div class="tooltip" :class="{ 'tooltip--active': showStaticPeersTooltip }">“Static Peers are a monthly snapshot of admin_peers from a random node on the network. These peers may not be currently active.”
+                  </div>
                 </div>
               </span>
               <span class="stat-item__value">{{ stats.total }}</span>
