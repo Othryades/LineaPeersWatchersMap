@@ -19,7 +19,7 @@
                 Total Static Peers
                 <div class="tooltip-container" @click="showStaticPeersTooltip = !showStaticPeersTooltip">
                   <span class="info-icon">i</span>
-                  <div class="tooltip" :class="{ 'tooltip--active': showStaticPeersTooltip }">“Static Peers are a monthly snapshot of admin_peers from a random node on the network. These peers may not be currently active.”
+                  <div class="tooltip" :class="{ 'tooltip--active': showStaticPeersTooltip }">Static Peers are a monthly snapshot of admin_peers from a random node on the network. These peers may not be currently active.
                   </div>
                 </div>
               </span>
@@ -43,7 +43,6 @@
             <h2 class="map-header__title">Node Distribution</h2>
             <button
               class="map-header__toggle"
-              @click="isHeatmapEnabled = !isHeatmapEnabled"
             >
               Heatmap
             </button>
