@@ -42,6 +42,10 @@ export const HEATMAP_CONFIG = {
   }
 }
 
+// Frontend-only mode: load static data from a JSON file served by Vite/public.
+// You can still override the base via VITE_API_BASE_URL if you host the JSON elsewhere.
+const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL || '').replace(/\/$/, '')
+
 export const API_ENDPOINTS = {
-  staticNodes: 'https://false-rays-offices-important.trycloudflare.com/static-nodes'
-} 
+  staticNodes: `${API_BASE_URL}/data.json`
+}

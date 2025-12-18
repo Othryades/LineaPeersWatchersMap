@@ -1,0 +1,27 @@
+[
+  {
+    "ip": "203.0.113.10",
+    "clientName": "geth",
+    "lat": 37.7749,
+    "lon": -122.4194,
+    "country": "United States",
+    "city": "San Francisco"
+  },
+  {
+    "ip": "198.51.100.24",
+    "clientName": "besu",
+    "lat": 52.52,
+    "lon": 13.405,
+    "country": "Germany",
+    "city": "Berlin"
+  },
+  {
+    "ip": "192.0.2.8",
+    "clientName": "nethermind",
+    "lat": 35.6895,
+    "lon": 139.6917,
+    "country": "Japan",
+    "city": "Tokyo"
+  }
+]
+

@@ -1,5 +1,6 @@
 <template>
   <div :class="['dashboard', isDark ? 'dark' : 'light']">
+    <NewsBar :isDark="isDark" />
     <header class="dashboard__header">
       <div class="theme-toggle" @click="isDark = !isDark">
         {{ isDark ? '🌙' : '☀️' }}
@@ -71,18 +72,16 @@
         <div class="footer__info">
           <span>Linea Peers Watcher Map</span>
           <span class="footer__separator">•</span>
-          <a href="https://github.com/Othryades/lineanodemap" target="_blank" rel="noopener">
-            <img src="/github-mark-white.svg" alt="GitHub" style="width: 20px; height: 20px;">
+          <a class="footer__icon-link" href="https://github.com/Othryades/lineanodemap" target="_blank" rel="noopener" aria-label="GitHub">
+            <img class="footer__icon" src="/github-mark-white.svg" alt="GitHub">
           </a>
-          <span class="footer__separator">•</span>
-          <span>v.0.2</span>
         </div>
         <div class="footer__links">
           <a href="https://linea.build" target="_blank" rel="noopener">Linea</a>
           <span class="footer__separator">•</span>
           <a href="https://docs.linea.build/developers/guides/run-a-node" target="_blank" rel="noopener">Run a node!</a>
-          <span class="footer__separator">•</span>
-          <a href="https://vite.dev/" target="_blank" rel="noopener"><img src="/vite.svg?url" alt="Linea Logo" style="width: 13px; height: 14px;"></a>
+          <!-- <span class="footer__separator">•</span>
+          <a href="https://vite.dev/" target="_blank" rel="noopener"><img src="/vite.svg?url" alt="Linea Logo" style="width: 13px; height: 14px;"></a> -->
         </div>
       </div>
     </footer>
@@ -94,6 +93,7 @@ import { ref, watch } from 'vue'
 import MapView from '../components/MapView.vue'
 import ClientStatsCharts from '../components/ClientStatsCharts.vue'
 import LocationStatsChart from '../components/LocationStatsChart.vue'
+import NewsBar from '../components/NewsBar.vue'
 // import '../style.css'
 const isDark = ref(true)
 const selectedClient = ref('')
@@ -139,6 +139,13 @@ body {
   background: #f9fafb;
   transition: background-color 0.3s ease;
   overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+#app {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+  text-align: left !important;
 }
 
 body.dark {
@@ -653,6 +660,28 @@ body.dark {
 
 .footer__links a:hover {
   color: #0ea5e9;
+}
+
+.footer__icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer__icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+.dark .footer__icon {
+  filter: none;
+}
+
+.footer__icon-link:hover .footer__icon {
+  opacity: 1;
 }
 
 .footer__separator {
