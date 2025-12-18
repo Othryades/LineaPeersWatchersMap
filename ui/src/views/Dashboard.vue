@@ -1,87 +1,99 @@
 <template>
   <div :class="['dashboard', isDark ? 'dark' : 'light']">
-    <NewsBar :isDark="isDark" />
-    <header class="dashboard__header">
-      <div class="theme-toggle" @click="isDark = !isDark">
-        {{ isDark ? '🌙' : '☀️' }}
+    <!-- Status Bar -->
+    <header class="status-bar">
+      <div class="status-bar__left">
+        <span :class="['status-dot', statusDotClass]"></span>
+        <span class="status-bar__title">Linea Network</span>
       </div>
-      <h1 class="dashboard__title">Linea Mainnet Peers Watcher Map</h1>
-      <div class="placeholder"></div>
+      <div class="status-bar__right">
+        <span class="status-bar__info">
+          {{ stats.total }} peers • {{ countryCount }} countries
+        </span>
+      </div>
     </header>
 
-    <div class="dashboard__content">
-      <aside class="dashboard__sidebar">
+    <!-- Hero Map Section -->
+    <section class="map-hero">
+      <MapView
+        :filters="{ client: selectedClient, location: locationFilter }"
+        :dark="isDark"
+        :heatmap="isHeatmapEnabled"
+        @stats-updated="updateStats"
+      />
+      
+      <!-- Floating Stats Overlay -->
+      <div class="stats-overlay">
+        <div class="stats-overlay__item stats-overlay__item--primary">
+          <span class="stats-overlay__value">{{ displayTotal }}</span>
+          <span class="stats-overlay__label">Total Peers</span>
+        </div>
+        <div class="stats-overlay__divider"></div>
+        <div class="stats-overlay__item">
+          <span class="stats-overlay__value">{{ displayCountries }}</span>
+          <span class="stats-overlay__label">Countries</span>
+        </div>
+        <div class="stats-overlay__divider"></div>
+        <div class="stats-overlay__item">
+          <span class="stats-overlay__value">{{ displayClients }}</span>
+          <span class="stats-overlay__label">Clients</span>
+        </div>
+        <div class="stats-overlay__divider"></div>
+        <div class="stats-overlay__item stats-overlay__item--tps">
+          <span :class="['stats-overlay__value', 'stats-overlay__value--tps', { 'stats-overlay__value--flash': tpsFlash }]">
+            {{ tps.toFixed(1) }}
+          </span>
+          <span class="stats-overlay__label">TPS</span>
+        </div>
+      </div>
+
+      <!-- Map Controls -->
+      <div class="map-controls">
+        <button 
+          class="map-controls__btn" 
+          :class="{ 'map-controls__btn--active': isHeatmapEnabled }"
+          @click="isHeatmapEnabled = !isHeatmapEnabled"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          <span>Heatmap</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+      <div class="stats-section__container">
         <div class="stats-card">
-          <h2 class="stats-card__title">Network</h2>
-          <div class="stats-card__content">
-            <div class="stat-item">
-              <span class="stat-item__icon"></span>
-              <span class="stat-item__label">
-                Total Static Peers
-                <div class="tooltip-container" @click="showStaticPeersTooltip = !showStaticPeersTooltip">
-                  <span class="info-icon">i</span>
-                  <div class="tooltip" :class="{ 'tooltip--active': showStaticPeersTooltip }">Static Peers are a monthly snapshot of admin_peers from a random node on the network. These peers may not be currently active.
-                  </div>
-                </div>
-              </span>
-              <span class="stat-item__value">{{ stats.total }}</span>
-            </div>
-          </div>
+          <h3 class="stats-card__title">Client Distribution</h3>
+          <ClientStatsCharts :clientCounts="stats.clientCounts" :dark="isDark" />
         </div>
 
-        <div class="filters-card">
-          <h2 class="filters-card__title">Stats</h2>
-          <div class="filters-card__content">
-            <ClientStatsCharts :clientCounts="stats.clientCounts" :dark="isDark" />
-
-          </div>
-        </div>
-      </aside>
-
-      <main class="dashboard__main">
-        <div class="node-distribution-block">
-          <div class="map-header">
-            <h2 class="map-header__title">Node Distribution</h2>
-            <button
-              class="map-header__toggle"
-            >
-              Heatmap
-            </button>
-          </div>
-          <div class="map-view-wrapper">
-            <MapView
-              :filters="{ client: selectedClient, location: locationFilter }"
-              :dark="isDark"
-              :heatmap="isHeatmapEnabled"
-              @stats-updated="updateStats"
-            />
-          </div>
-        </div>
-
-        <div class="location-distribution-block">
+        <div class="stats-card stats-card--location">
           <LocationStatsChart
-              :countryCounts="stats.countryCounts"
-              :dark="isDark"
-              @country-selected="locationFilter = locationFilter === $event ? '' : $event"
-            />
+            :countryCounts="stats.countryCounts"
+            :dark="isDark"
+            @country-selected="locationFilter = locationFilter === $event ? '' : $event"
+          />
         </div>
-      </main>
-    </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
     <footer class="dashboard__footer">
       <div class="footer__content">
         <div class="footer__info">
-          <span>Linea Peers Watcher Map</span>
+          <span>Linea Peers Watcher</span>
           <span class="footer__separator">•</span>
+          <span class="footer__meta">Monthly snapshot via admin_peers</span>
+        </div>
+        <div class="footer__links">
           <a class="footer__icon-link" href="https://github.com/Othryades/lineanodemap" target="_blank" rel="noopener" aria-label="GitHub">
             <img class="footer__icon" src="/github-mark-white.svg" alt="GitHub">
           </a>
-        </div>
-        <div class="footer__links">
+          <span class="footer__separator">•</span>
           <a href="https://linea.build" target="_blank" rel="noopener">Linea</a>
           <span class="footer__separator">•</span>
-          <a href="https://docs.linea.build/developers/guides/run-a-node" target="_blank" rel="noopener">Run a node!</a>
-          <!-- <span class="footer__separator">•</span>
-          <a href="https://vite.dev/" target="_blank" rel="noopener"><img src="/vite.svg?url" alt="Linea Logo" style="width: 13px; height: 14px;"></a> -->
+          <a href="https://docs.linea.build/developers/guides/run-a-node" target="_blank" rel="noopener">Run a node</a>
         </div>
       </div>
     </footer>
@@ -89,12 +101,11 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import MapView from '../components/MapView.vue'
 import ClientStatsCharts from '../components/ClientStatsCharts.vue'
 import LocationStatsChart from '../components/LocationStatsChart.vue'
-import NewsBar from '../components/NewsBar.vue'
-// import '../style.css'
+
 const isDark = ref(true)
 const selectedClient = ref('')
 const locationFilter = ref('')
@@ -106,9 +117,18 @@ const stats = ref({
   countryCounts: []
 })
 const isHeatmapEnabled = ref(true)
-const showStaticPeersTooltip = ref(false)
+const hasAnimatedOverlay = ref(false)
+const displayTotal = ref(0)
+const displayCountries = ref(0)
+const displayClients = ref(0)
+const tps = ref(0)
+const tpsFlash = ref(false)
+let tpsIntervalId = null
 
-const clients = ['Geth', 'Besu', 'Erigon', 'Nethermind', 'Unknown']
+// Computed stats for overlay
+const countryCount = computed(() => stats.value.countryCounts?.length || 0)
+const clientCount = computed(() => Object.keys(stats.value.clientCounts || {}).length)
+const statusDotClass = computed(() => stats.value.total > 0 ? 'status-dot--on' : 'status-dot--off')
 
 // Watch for dark mode changes and update body class
 watch(isDark, (newValue) => {
@@ -122,6 +142,51 @@ watch(isDark, (newValue) => {
 function updateStats(newStats) {
   stats.value = newStats
 }
+
+function animateCount(start, end, setter, duration = 600) {
+  const startTime = performance.now()
+  const easeOut = t => 1 - Math.pow(1 - t, 3)
+
+  const step = (now) => {
+    const elapsed = now - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    const eased = easeOut(progress)
+    const value = Math.round(start + (end - start) * eased)
+    setter(value)
+    if (progress < 1) requestAnimationFrame(step)
+  }
+
+  requestAnimationFrame(step)
+}
+
+function updateMockTps() {
+  const next = Number((0.5 + Math.random() * 9.5).toFixed(1))
+  tps.value = next
+  tpsFlash.value = true
+  setTimeout(() => { tpsFlash.value = false }, 250)
+}
+
+onMounted(() => {
+  updateMockTps()
+  tpsIntervalId = setInterval(updateMockTps, 4000)
+})
+
+onUnmounted(() => {
+  if (tpsIntervalId) clearInterval(tpsIntervalId)
+})
+
+watch(
+  () => stats.value.total,
+  (total) => {
+    if (hasAnimatedOverlay.value) return
+    if (total <= 0) return
+
+    hasAnimatedOverlay.value = true
+    animateCount(0, total, v => displayTotal.value = v)
+    animateCount(0, countryCount.value, v => displayCountries.value = v)
+    animateCount(0, clientCount.value, v => displayClients.value = v)
+  }
+)
 </script>
 
 <style>
@@ -136,9 +201,9 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: #f9fafb;
+  background: #f8fafc;
   transition: background-color 0.3s ease;
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-x: hidden;
 }
 
 #app {
@@ -149,477 +214,352 @@ body {
 }
 
 body.dark {
-  background: #1e1e2f;
+  background: #0d0f14;
 }
 </style>
 
 <style scoped>
+/* ===========================================
+   DASHBOARD LAYOUT
+   =========================================== */
 .dashboard {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   font-family: 'Inter', system-ui, sans-serif;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .dashboard.light {
+  background: #f8fafc;
   color: #1f2937;
 }
 
 .dashboard.dark {
+  background: #0d0f14;
   color: #e5e7eb;
 }
 
-.dashboard__header {
-  display: grid;
-  grid-template-columns: 100px 1fr 100px;
+/* ===========================================
+   STATUS BAR (Header)
+   =========================================== */
+.status-bar {
+  display: flex;
   align-items: center;
-  padding: 0.75rem 1.5rem;
-  background: white;
-  color: black;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 44px;
+  background: #0d0f14;
+  border-bottom: 1px solid #1f2933;
+  z-index: 100;
 }
 
-.dark .dashboard__header {
-  background: #1e1e2f;
-  color: white;
+.status-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
 }
 
-.dashboard__title {
-  text-align: center;
-  font-size: 1.125rem;
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot--on {
+  background: #22c55e;
+}
+
+.status-dot--off {
+  background: #6b7280;
+}
+
+.status-bar__title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
+}
+
+.status-bar__center {
+  display: flex;
+  align-items: center;
+}
+
+.status-bar__info {
+  font-size: 0.8125rem;
+  color: #cbd5e1;
   font-weight: 500;
-  margin: 0;
+}
+
+.status-bar__right {
+  display: flex;
+  align-items: center;
 }
 
 .theme-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
   cursor: pointer;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #f1f5f9;
   transition: all 0.2s ease;
 }
 
 .dark .theme-toggle {
-  background: #334155;
+  border-color: #374151;
+  color: #9ca3af;
 }
 
 .theme-toggle:hover {
-  background: #e2e8f0;
-}
-
-.dark .theme-toggle:hover {
-  background: #475569;
-}
-
-.theme-toggle__icon {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.placeholder {
-  width: 40px;
-}
-
-.dashboard__content {
-  display: grid;
-  grid-template-columns: 340px minmax(600px, 800px);
-  gap: 1rem;
-  padding: 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  align-items: stretch;
-}
-
-.dashboard__sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.dashboard__main {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.dark .dashboard__main {
-  /* background: #2c2c3c; */
-}
-
-/* Stats Card */
-.stats-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.dark .stats-card {
-  background: #2c2c3c;
-}
-
-.stats-card__title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0 0 1rem 0;
-}
-
-.stats-card__content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.stat-item {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: #f3f4f6;
-  border-radius: 8px;
-}
-
-.dark .stat-item {
-  background: #374151;
-}
-
-.stat-item__icon {
-  font-size: 1.2rem;
-}
-
-.stat-item__label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.dark .stat-item__label {
-  color: #9ca3af;
-}
-
-.stat-item__value {
-  font-weight: 600;
-}
-
-/* Filters Card */
-.filters-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.dark .filters-card {
-  background: #2c2c3c;
-}
-
-.filters-card__title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0 0 1rem 0;
-}
-
-.filters-card__content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.filter-group__label {
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
-.dark .filter-group__label {
-  color: #9ca3af;
-}
-
-.client-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-  max-height: 200px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-/* Add a custom scrollbar for the country list */
-.client-filters::-webkit-scrollbar {
-  width: 4px;
-}
-
-.client-filters::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.dark .client-filters::-webkit-scrollbar-track {
-  background: #374151;
-}
-
-.client-filters::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-.dark .client-filters::-webkit-scrollbar-thumb {
-  background: #4b5563;
-}
-
-.client-filters::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-.dark .client-filters::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
-
-.client-filter {
-  background: none;
-  border: none;
-  padding: 0.375rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  color: #6b7280;
-  /* cursor: pointer; */
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.dark .client-filter {
-  color: #9ca3af;
-}
-
-.client-filter:hover {
   background: #f3f4f6;
   color: #374151;
 }
 
-.dark .client-filter:hover {
-  background: #374151;
+.dark .theme-toggle:hover {
+  background: #1f2937;
   color: #e5e7eb;
 }
 
-.client-filter.active {
-  background: #e2e8f0;
-  color: #1f2937;
-  font-weight: 500;
+/* ===========================================
+   MAP HERO SECTION
+   =========================================== */
+.map-hero {
+  position: relative;
+  height: 65vh;
+  min-height: 400px;
+  max-height: 800px;
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 2rem;
 }
 
-.dark .client-filter.active {
-  background: #334155;
-  color: #f8fafc;
+/* ===========================================
+   FLOATING STATS OVERLAY
+   =========================================== */
+.stats-overlay {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.client-count {
-  font-size: 0.75rem;
-  color: #6b7280;
-  background: #f3f4f6;
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  min-width: 1.5rem;
+.dark .stats-overlay {
+  background: rgba(22, 26, 34, 0.92);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.stats-overlay__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  padding: 0 0.75rem;
   text-align: center;
 }
 
-.dark .client-count {
-  background: #374151;
-  color: #9ca3af;
+.stats-overlay__item--tps .stats-overlay__value {
+  font-size: 1.1rem;
 }
 
-.client-filter.active .client-count {
-  background: #e2e8f0;
-  color: #1f2937;
+.stats-overlay__value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
 }
 
-.dark .client-filter.active .client-count {
-  background: #334155;
-  color: #f8fafc;
+.dark .stats-overlay__value {
+  color: #f9fafb;
 }
 
-.filter-group__input {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #f9fafb;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.dark .filter-group__input {
-  background: #374151;
-  border-color: #4b5563;
+.stats-overlay__value--tps {
+  font-weight: 600;
   color: #e5e7eb;
 }
 
-.filter-group__input:focus {
-  outline: none;
-  border-color: #94a3b8;
-  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.1);
+.dark .stats-overlay__value--tps {
+  color: #cbd5e1;
 }
 
-.dark .filter-group__input:focus {
-  border-color: #64748b;
-  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.1);
+.stats-overlay__value--flash {
+  transition: color 0.25s ease;
+  color: #22d3ee;
 }
 
-.filter-group__select {
-  display: none;
+.stats-overlay__item--primary .stats-overlay__value {
+  font-size: 1.95rem;
+  color: #0891b2;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .dashboard__content {
-    grid-template-columns: 350px minmax(400px, 600px);
-    height: calc(100vh - 64px - 150px);
-  }
-
-  .dashboard__main {
-    /* height: 400px; */
-  }
+.dark .stats-overlay__item--primary .stats-overlay__value {
+  color: #22d3ee;
 }
 
-@media (max-width: 768px) {
-  .dashboard__content {
-    grid-template-columns: 1fr;
-    max-width: 100%;
-    height: auto;
-    gap: 1.5rem;
-  }
-
-  .dashboard__sidebar {
-    order: 2;
-  }
-
-  .dashboard__main {
-    order: 1;
-    /* height: 350px; */
-  }
-
-  .stats-card__content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.5rem;
-  }
-
-  .dashboard__header {
-    padding: 0.625rem 1rem;
-    grid-template-columns: 60px 1fr 60px;
-  }
-
-  .theme-toggle {
-    width: 36px;
-    height: 36px;
-  }
-
-  .theme-toggle__icon {
-    font-size: 1.125rem;
-  }
-
-  .placeholder {
-    width: 36px;
-  }
-
-  .map-header {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .map-header__title {
-    font-size: 0.875rem;
-  }
+.stats-overlay__label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin-top: 3px;
+  display: block;
 }
 
-@media (max-width: 480px) {
-  .dashboard__header {
-    padding: 1rem;
-  }
-
-  .dashboard__title {
-    font-size: 1.2rem;
-  }
-
-  .stats-card__content {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard__main {
-    /* height: 300px; */
-  }
+.dark .stats-overlay__label {
+  color: #cbd5e1;
 }
 
-.map-header {
+
+.stats-overlay__divider {
+  width: 1px;
+  background: #e5e7eb;
+  margin: -0.25rem 0;
+}
+
+.dark .stats-overlay__divider {
+  background: #374151;
+}
+
+/* ===========================================
+   MAP CONTROLS
+   =========================================== */
+.map-controls {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
   display: flex;
-  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.map-controls__btn {
+  display: flex;
   align-items: center;
-  padding: 0.75rem 1.25rem;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.dark .map-header {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-.map-header__title {
-  font-size: 1rem;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  font-size: 0.8125rem;
   font-weight: 500;
-  color: #475569;
-  margin: 0;
-}
-
-.dark .map-header__title {
-  color: #e2e8f0;
-}
-
-.map-header__toggle {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 0.75rem;
-  background: #f8fafc;
-  border: none;
-  border-radius: 6px;
-  color: #64748b;
-  font-size: 0.875rem;
+  color: #374151;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.dark .map-header__toggle {
-  background: #1e293b;
+.dark .map-controls__btn {
+  background: rgba(22, 26, 34, 0.92);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #d1d5db;
+}
+
+.map-controls__btn:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.dark .map-controls__btn:hover {
+  background: rgba(31, 41, 55, 0.95);
+}
+
+.map-controls__btn--active {
+  background: #0891b2;
+  color: white;
+  border-color: transparent;
+}
+
+.dark .map-controls__btn--active {
+  background: #0891b2;
+  color: white;
+}
+
+/* ===========================================
+   STATS SECTION
+   =========================================== */
+.stats-section {
+  padding: 2.75rem 1.5rem 2.5rem;
+}
+
+.stats-section__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.75rem;
+}
+
+.stats-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.dark .stats-card {
+  background: #161a22;
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+.stats-card__title {
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #94a3b8;
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-.map-container {
-  flex: 1;
-  min-height: 0;
+.dark .stats-card__title {
+  color: #9ca3af;
 }
 
+.stats-card--location {
+  padding: 0.9rem 1.1rem;
+}
+
+.stats-card--location .stats-card__title {
+  font-size: 0.8rem;
+  color: #8a94a5;
+}
+
+/* ===========================================
+   FOOTER
+   =========================================== */
 .dashboard__footer {
   background: white;
-  border-top: 1px solid #e2e8f0;
-  padding: 0.75rem 1rem;
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
   margin-top: auto;
 }
 
 .dark .dashboard__footer {
-  background: #1e1e2f;
-  border-color: #334155;
+  background: #0d0f14;
+  border-color: #252a35;
 }
 
 .footer__content {
@@ -628,12 +568,12 @@ body.dark {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.875rem;
-  color: #64748b;
+  font-size: 0.8125rem;
+  color: #6b7280;
 }
 
 .dark .footer__content {
-  color: #94a3b8;
+  color: #6b7280;
 }
 
 .footer__info {
@@ -642,24 +582,36 @@ body.dark {
   gap: 0.5rem;
 }
 
+.footer__meta {
+  color: #9ca3af;
+}
+
+.dark .footer__meta {
+  color: #4b5563;
+}
+
 .footer__links {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.625rem;
 }
 
 .footer__links a {
-  color: #64748b;
+  color: #6b7280;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .dark .footer__links a {
-  color: #94a3b8;
+  color: #6b7280;
 }
 
 .footer__links a:hover {
-  color: #0ea5e9;
+  color: #0891b2;
+}
+
+.dark .footer__links a:hover {
+  color: #22d3ee;
 }
 
 .footer__icon-link {
@@ -669,15 +621,15 @@ body.dark {
 }
 
 .footer__icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   display: block;
-  filter: brightness(0) invert(1);
-  opacity: 0.9;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
 }
 
-.dark .footer__icon {
-  filter: none;
+.light .footer__icon {
+  filter: brightness(0);
 }
 
 .footer__icon-link:hover .footer__icon {
@@ -685,136 +637,105 @@ body.dark {
 }
 
 .footer__separator {
-  color: #94a3b8;
-  opacity: 0.5;
+  color: #d1d5db;
+  opacity: 0.4;
 }
 
-@media (max-width: 640px) {
+.dark .footer__separator {
+  color: #374151;
+}
+
+/* ===========================================
+   RESPONSIVE
+   =========================================== */
+@media (max-width: 768px) {
+  .status-bar {
+    padding: 0.625rem 1rem;
+  }
+
+  .status-bar__center {
+    display: none;
+  }
+
+  .map-hero {
+    height: 55vh;
+    min-height: 320px;
+  }
+
+  .stats-overlay {
+    left: 12px;
+    bottom: 12px;
+    padding: 0.75rem 1rem;
+  }
+
+  .stats-overlay__value {
+    font-size: 1.25rem;
+  }
+
+  .stats-overlay__item--primary .stats-overlay__value {
+    font-size: 1.375rem;
+  }
+
+  .stats-overlay__item {
+    padding: 0 0.75rem;
+  }
+
+  .map-controls {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .stats-section {
+    padding: 1.5rem 1rem;
+  }
+
+  .stats-section__container {
+    grid-template-columns: 1fr;
+  }
+
   .footer__content {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
     text-align: center;
   }
-}
 
-/* Add these new styles at the end of your existing styles */
-.tooltip-container {
-  position: relative;
-  display: inline-block;
-}
-
-.info-icon {
-  cursor: help;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  font-size: 11px;
-  margin-left: 4px;
-  background: #64748b;
-  color: white;
-  border-radius: 50%;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-  font-style: italic;
-  font-family: serif;
-}
-
-.dark .info-icon {
-  background: #94a3b8;
-}
-
-.info-icon:hover {
-  opacity: 1;
-}
-
-.tooltip {
-  visibility: hidden;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 100%;
-  margin-bottom: 5px;
-  padding: 6px 10px;
-  background: #2c2c3c;
-  color: white;
-  font-size: 0.75rem;
-  white-space: normal;
-  max-width: 240px;
-  min-width: 180px;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 100;
-  opacity: 0;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-  text-align: center;
-  pointer-events: none;
-}
-
-.tooltip::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: -4px;
-  transform: translateX(-50%) rotate(45deg);
-  width: 8px;
-  height: 8px;
-  background: #2c2c3c;
-}
-
-.tooltip-container:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-
-.tooltip-container .tooltip.tooltip--active {
-  visibility: visible;
-  opacity: 1;
-}
-
-.dark .tooltip {
-  background: #1e1e2f;
-  color: #e5e7eb;
-}
-
-.dark .tooltip::before {
-  background: #1e1e2f;
-}
-
-.node-distribution-block,
-.location-distribution-block {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-.dark .node-distribution-block,
-.dark .location-distribution-block {
-  background: #2c2c3c;
-}
-
-.node-distribution-block {
-  height: 530px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.map-view-wrapper {
-  flex: 1;
-  min-height: 0;
-  position: relative;
-}
-@media (max-width: 640px) {
-  .node-distribution-block {
-    height: 330px;
+  .footer__info {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
 
-.location-distribution-block {
-  /* Height is auto. Add padding here if LocationStatsChart needs it. */
-  /* For example: padding: 1rem; */
+@media (max-width: 480px) {
+  .stats-overlay {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    justify-content: space-around;
+  }
+
+  .stats-overlay__item {
+    padding: 0 0.5rem;
+  }
+
+  .stats-overlay__value {
+    font-size: 1.125rem;
+  }
+
+  .stats-overlay__item--primary .stats-overlay__value {
+    font-size: 1.25rem;
+  }
+
+  .stats-overlay__label {
+    font-size: 0.625rem;
+  }
+
+  .map-controls {
+    display: none;
+  }
+
+  .map-hero {
+    height: 50vh;
+  }
 }
 </style>
   
