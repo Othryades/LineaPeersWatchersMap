@@ -1,10 +1,11 @@
 <template>
+  <h1 class="visually-hidden">Linea nodes and peers map</h1>
   <div :class="['dashboard', isDark ? 'dark' : 'light']">
     <!-- Status Bar -->
     <header class="status-bar">
       <div class="status-bar__left">
         <span :class="['status-dot', statusDotClass]"></span>
-        <span class="status-bar__title">Linea Network</span>
+        <h1 class="status-bar__title">Linea Network</h1>
       </div>
       <div class="status-bar__right">
         <span class="status-bar__info">
@@ -160,7 +161,7 @@ function animateCount(start, end, setter, duration = 600) {
 }
 
 function updateMockTps() {
-  const next = Number((0.5 + Math.random() * 9.5).toFixed(1))
+  const next = Number((0.5 + Math.random() * 5.5).toFixed(1))
   tps.value = next
   tpsFlash.value = true
   setTimeout(() => { tpsFlash.value = false }, 250)
@@ -215,6 +216,18 @@ body {
 
 body.dark {
   background: #0d0f14;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>
 
