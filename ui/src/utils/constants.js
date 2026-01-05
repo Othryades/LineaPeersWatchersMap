@@ -48,7 +48,7 @@ const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL || '').replace(/\/$/, '
 
 export const API_ENDPOINTS = {
   // Default (current view)
-  staticNodes: `${API_BASE_URL}/peers_erigon_new.json`,
+  staticNodes: `${API_BASE_URL}/peers_erigon_merged.json`,
   // Alternative snapshot (previous enrichment)
   staticNodesAlt: `${API_BASE_URL}/peers_new.json`,
   // List of available static sources

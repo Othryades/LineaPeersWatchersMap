@@ -4,46 +4,40 @@
 
 ## Project Overview
 
-This project provides a dynamic, real-time visualization of Linea mainnet peer nodes distributed across the globe. It features an interactive map displaying node locations, client types, and network statistics. The frontend is built with Vue 3 and Vite, utilizing Leaflet for map rendering, while the backend is a Node.js application using Express.
+This project provides a dynamic visualization of Linea mainnet peer nodes distributed across the globe. It features an interactive map displaying node locations, client types, and network statistics. The app now runs frontend-only (Vue 3 + Vite); data is loaded from enriched JSON snapshots placed in `ui/public`.
 
 ## Key Features
 
-*   **Interactive Map:** Displays Linea peer nodes on a world map.
-*   **Node Information:** Provides details on individual nodes, including client type and location (derived from IP geolocation and AWS region heuristics).
-*   **Data Layers:**
-    *   **Marker Clusters:** Groups nearby nodes for better visibility at wider zoom levels.
-    *   **Heatmap:** Visualizes areas with high node density.
-*   **Network Statistics:**
-    *   Total count of static peers.
-    *   Distribution of nodes by client type (e.g., Geth, Besu, Erigon, Nethermind).
-    *   Distribution of nodes by country.
-*   **Real-time Updates:** Live node data is sourced from `ethstats.linea.build` via WebSocket.
-*   **Static Peer Data:** Enriched static peer list is updated periodically.
-*   **Dark/Light Mode:** User-selectable theme for the dashboard.
+* **Interactive Map:** Displays Linea peer nodes on a world map (Leaflet).
+* **Node Information:** Client type and geo (from IP enrichment).
+* **Data Layers:** Marker clusters + heatmap.
+* **Network Statistics:** Totals, client distribution, country distribution.
+* **Static Data:** Served from `ui/public/*.json` (no backend required).
+* **Theme:** Dark/light toggle.
 
 ## Tech Stack
 
 **Frontend (UI):**
-*   **Framework:** Vue 3 (Composition API with `<script setup>`)
-*   **Build Tool:** Vite
-*   **Mapping:**
-    *   Leaflet.js
-    *   `leaflet.markercluster` (for clustering nodes)
-    *   `leaflet.heat` (for heatmap display)
-*   **Charting:** Chart.js (via `vue-chartjs`)
-*   **HTTP Client:** Axios
-*   **Styling:** Primarily custom CSS with global `box-sizing` and responsive design.
+* **Framework:** Vue 3 (Composition API with `<script setup>`)
+* **Build Tool:** Vite
+* **Mapping:** Leaflet.js, `leaflet.markercluster`, `leaflet.heat`
+* **Charts:** Chart.js (via `vue-chartjs`)
+* **Styling:** CSS + Tailwind v4 imports
 
-**Backend:**
-*   **Runtime:** Node.js
-*   **Framework:** Express.js
-*   **WebSocket Client:** Primus (to connect to `ethstats.linea.build`)
-*   **Middleware:** CORS
+**Data prep (CLI):**
+* Node.js scripts to enrich raw `admin_peers` snapshots into JSON used by the UI.
 
-## Data Sources
+## Data Flow / Enrichment
 
-*   **Static Nodes:** Fetched from the backend API endpoint `/static-nodes`. This data is typically an enriched list of `admin_peers` from a random node on the network, refreshed periodically. Geolocation is derived from IP addresses and AWS region heuristics.
-*   **Live Nodes:** Sourced in real-time via a WebSocket connection to `wss://ethstats.linea.build/primus`.
+1) Get raw peers from your node (`admin_peers` RPC) or `admin_nodeInfo` for a single node.
+2) Run the enrichment script to normalize and geo-tag:
+   * Script: `backend/process-peers.js`
+   * Usage: `node backend/process-peers.js <input_raw.json> <output_enriched.json>`
+   * Steps: filter private IPs, dedupe by enode, parse client name/version, batch geolocate via `ip-api.com`, emit `ip, client, clientName, clientVersion, enode, country, region, city, lat, lon`.
+3) Optional: merge multiple enriched files (e.g., Besu + Erigon) into one combined snapshot placed in `ui/public/`.
+4) The UI loads the chosen JSON from `ui/public` (see `ui/src/utils/constants.js` for endpoints).
+
+Live WebSocket data from `ethstats.linea.build` is currently not required for the hosted build; the map runs from static snapshots.
 
 ## Setup and Running Locally
 
@@ -51,22 +45,6 @@ This project provides a dynamic, real-time visualization of Linea mainnet peer n
 
 *   Node.js (version 18.x or later recommended)
 *   npm (usually comes with Node.js)
-
-### Backend
-
-1.  Navigate to the `backend` directory:
-    ```bash
-    cd backend
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Start the backend server (defaults to `http://localhost:3000` or as per your config):
-    ```bash
-    node index.js
-    # or if you have a dev script: npm run dev
-    ```
 
 ### Frontend (UI)
 

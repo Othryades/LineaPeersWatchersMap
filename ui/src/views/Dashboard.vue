@@ -5,7 +5,7 @@
     <header class="status-bar">
       <div class="status-bar__left">
         <span :class="['status-dot', statusDotClass]"></span>
-        <h1 class="status-bar__title">Linea Network</h1>
+        <h1 class="status-bar__title">Linea Mainnet Network</h1>
       </div>
       <div class="status-bar__right">
         <span class="status-bar__info">
