@@ -48,7 +48,7 @@ const barData = computed(() => ({
     data: props.countryCounts.map(c => c.count),
     backgroundColor: chartColors,
     borderRadius: 8,
-    maxBarThickness: 24
+    maxBarThickness: 20
   }]
 }))
 
@@ -92,25 +92,23 @@ const barOptions = computed(() => ({
     }
   }
 }))
-
-console.log('LocationStatsChart countries:', props.countryCounts.map(c => c.country));
 </script>
 
 <style scoped>
 .location-stats-chart {
-  background: var(--chart-bg, #fff);
-  border-radius: 12px;
-  padding: 1rem 1.5rem;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  margin-bottom: 1.5rem;
-}
-.dark .location-stats-chart {
-  --chart-bg: #2c2c3c;
+  background: transparent;
+  border-radius: 10px;
+  padding: 0;
+  box-shadow: none;
+  margin: 0;
 }
 h3 {
-  margin-bottom: 1rem;
-  font-size: 1rem;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: inherit;
+  color: #9ca3af;
+}
+:deep(canvas) {
+  max-height: 340px;
 }
 </style> 

@@ -231,23 +231,24 @@ watch(() => props.dark, () => {
 
 <style scoped>
 .map-view {
-  display: flex;
-  flex-direction: column;
+  position: absolute;
+  inset: 0;
+  width: 100%;
   height: 100%;
-  background: white;
-  /* border-radius: 12px; */
-  overflow: hidden;
-  max-width: 100%;
+  background: #1a1a2e;
 }
 
 .dark .map-view {
-  background: #2c2c3c;
+  background: #0d0f14;
+}
+
+.light .map-view {
+  background: #e5e7eb;
 }
 
 .map-view__container {
-  flex: 1;
-  min-height: 0;
   width: 100%;
+  height: 100%;
 }
 
 /* Override Leaflet's default icon styles */
@@ -289,32 +290,5 @@ watch(() => props.dark, () => {
 
 .dark .popup__content {
   color: #9ca3af;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .map-view {
-    height: 400px;
-  }
-}
-
-@media (max-width: 768px) {
-  .map-view {
-    height: 350px;
-  }
-  
-  .map-view__header {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .map-view__title {
-    font-size: 0.875rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .map-view {
-    height: 300px;
-  }
 }
 </style>
